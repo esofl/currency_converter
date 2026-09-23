@@ -1,50 +1,40 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Currency Converter Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Spec-Driven Integrity
+Every feature and architectural behavior originates from an unambiguous markdown specification. No implementation code may be produced without prior specification, technical planning, and task breakdown.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Offline-First & Resilient Operation
+The application must maintain full operational capability during network disconnection, official holidays, weekends, or API degradation. 
+- Network exceptions must be caught cleanly and presented gracefully to the user.
+- The latest successful exchange rates must be persistently cached and restored upon restart.
+- If data is unavailable for a given non-working date, the system falls back to the most recent available rates with explicit UI indication.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Strict Validation & User Feedback
+User input must be strictly validated before any financial calculation:
+- Amounts must be positive decimal numbers greater than zero.
+- Empty strings, alphabetic characters, negative numbers, and zeroes must trigger friendly UI validation messages.
+- The primary action button (Convert) must remain inactive until valid inputs are provided.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Mathematical Precision & Nominal Awareness
+Financial calculations must strictly account for currency nominals (e.g., 100 JPY or 10 RUB) and base currency relationships (MDL as base currency):
+- $\text{Amount}_{\text{MDL}} = \text{Amount}_{\text{From}} \times \left(\frac{\text{Value}_{\text{From}}}{\text{Nominal}_{\text{From}}}\right)$
+- $\text{Amount}_{\text{To}} = \frac{\text{Amount}_{\text{MDL}}}{\left(\frac{\text{Value}_{\text{To}}}{\text{Nominal}_{\text{To}}}\right)}$
+- Conversion between identical currencies must yield the identical amount without precision loss or network calls.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Test-First & Automated Verification
+All core domain models, XML parsing logic, edge cases (empty responses, holidays, missing nodes), conversion calculations, and validators must be thoroughly covered by unit tests executable via a single standard CLI command.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
-
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Architecture & Technology Constraints
+- **Platform**: Desktop Application (GUI). Console-only applications are strictly prohibited by specification.
+- **Language & Runtime**: Python 3.11+.
+- **GUI Toolkit**: `tkinter` / `ttk` (standard library, zero heavy external binary dependencies).
+- **Data Source**: Official National Bank of Moldova (BNM) XML feed (`https://www.bnm.md/ru/official_exchange_rates?get_xml=1&date=DD.MM.YYYY`).
+- **Cache Format**: Local JSON storage (`cache/exchange_rates.json`) with timestamp and source metadata.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+- This constitution governs all implementation artifacts and pull requests.
+- All development must proceed through dedicated Git branches with Pull Request merging into `main`.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
-
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-09-23 | **Author**: esofl

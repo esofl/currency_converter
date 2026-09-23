@@ -43,5 +43,5 @@
 - [x] **TASK-013**: Implement `tests/test_network_fallback.py` (weekend/holiday empty XML handling).
 
 ## Phase 6: Documentation & Reporting
-- [ ] **TASK-014**: Create comprehensive `REPORT.md` answering all 5 laboratory questions and documenting agent adjustments.
-- [ ] **TASK-015**: Polish root `README.md` with usage instructions, single-command test line, and GitHub styling.
+- [x] **TASK-014**: Create comprehensive `REPORT.md` answering all 5 laboratory questions and documenting agent adjustments.
+- [x] **TASK-015**: Polish root `README.md` with usage instructions, single-command test line, and GitHub styling.

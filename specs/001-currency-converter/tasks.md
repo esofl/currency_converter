@@ -36,11 +36,11 @@
 - [x] **TASK-008**: Implement application entry point `main.py`.
 
 ## Phase 5: Automated Unit Testing
-- [ ] **TASK-009**: Implement `tests/test_parser.py` (XML parsing, nominals, MDL base).
-- [ ] **TASK-010**: Implement `tests/test_converter.py` (cross-conversion, reverse conversion, identity).
-- [ ] **TASK-011**: Implement `tests/test_validator.py` (negative numbers, zero, strings, commas).
-- [ ] **TASK-012**: Implement `tests/test_cache.py` (JSON saving, loading, corruption recovery).
-- [ ] **TASK-013**: Implement `tests/test_network_fallback.py` (weekend/holiday empty XML handling).
+- [x] **TASK-009**: Implement `tests/test_parser.py` (XML parsing, nominals, MDL base).
+- [x] **TASK-010**: Implement `tests/test_converter.py` (cross-conversion, reverse conversion, identity).
+- [x] **TASK-011**: Implement `tests/test_validator.py` (negative numbers, zero, strings, commas).
+- [x] **TASK-012**: Implement `tests/test_cache.py` (JSON saving, loading, corruption recovery).
+- [x] **TASK-013**: Implement `tests/test_network_fallback.py` (weekend/holiday empty XML handling).
 
 ## Phase 6: Documentation & Reporting
 - [ ] **TASK-014**: Create comprehensive `REPORT.md` answering all 5 laboratory questions and documenting agent adjustments.

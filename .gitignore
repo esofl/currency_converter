@@ -19,3 +19,9 @@ env/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Runtime cache and Node/Playwright
+cache/
+node_modules/
+test-results/
+playwright-report/

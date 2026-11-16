@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from src.models import Valute, ExchangeRateSet
-from src.exceptions import NetworkError, RateParsingError
+from src.exceptions import NetworkError, NoDataError, RateParsingError
 
 
 class BNMClient:
@@ -19,15 +19,13 @@ class BNMClient:
 
     def __init__(self, timeout: int = 10):
         self.timeout = timeout
-        # Secure default SSL context with fallback for environments with missing root certs
+        # Certificate verification stays on (constitution: transport security).
         self.ssl_context = ssl.create_default_context()
-        self.ssl_context.check_hostname = False
-        self.ssl_context.verify_mode = ssl.CERT_NONE
 
     def parse_xml(self, xml_content: str) -> ExchangeRateSet:
         """Parses BNM XML string into an ExchangeRateSet object."""
         if not xml_content or not xml_content.strip():
-            raise RateParsingError("Received empty XML content from source")
+            raise NoDataError("Received empty XML content from source")
 
         try:
             root = ET.fromstring(xml_content)
@@ -81,7 +79,7 @@ class BNMClient:
 
         if len(valutes) <= 1:
             # Only base MDL was registered, no external currencies parsed
-            raise RateParsingError("XML response contains no currency exchange rate entries")
+            raise NoDataError("XML response contains no currency exchange rate entries")
 
         return ExchangeRateSet(
             date=date_str,
@@ -106,12 +104,18 @@ class BNMClient:
                     raise NetworkError(f"BNM server returned HTTP status {response.status}")
                 raw_bytes = response.read()
                 return raw_bytes.decode("utf-8", errors="replace")
+        except urllib.error.HTTPError as e:
+            if e.code == 404:  # BNM answers 404 for dates without a publication
+                raise NoDataError(f"BNM has no rates for {target_date}") from e
+            raise NetworkError(f"BNM server returned HTTP status {e.code}") from e
         except urllib.error.URLError as e:
             raise NetworkError(f"Network error connecting to BNM: {e.reason}") from e
+        except NetworkError:
+            raise
         except Exception as e:
             raise NetworkError(f"Unexpected communication error with BNM: {e}") from e
 
-    def fetch_rates(self, target_date: Optional[str] = None, max_fallback_days: int = 5) -> ExchangeRateSet:
+    def fetch_rates(self, target_date: Optional[str] = None, max_fallback_days: int = 7) -> ExchangeRateSet:
         """Fetches exchange rates with automated weekend and holiday fallback."""
         if target_date:
             curr_dt = datetime.strptime(target_date, "%d.%m.%Y")
@@ -127,8 +131,8 @@ class BNMClient:
                 return rate_set
             except (RateParsingError, NetworkError) as e:
                 last_error = e
-                # Fallback to previous day if response was empty or error was rate parsing (e.g. non-working day)
-                if isinstance(e, RateParsingError):
+                # Step back only when the day has no publication; malformed data or no network is reported as is.
+                if isinstance(e, NoDataError):
                     curr_dt -= timedelta(days=1)
                     continue
                 # If network completely fails, do not loop endlessly

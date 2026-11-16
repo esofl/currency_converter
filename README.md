@@ -1,15 +1,15 @@
 <div align="center">
 
-# 💱 Desktop Currency Converter
+# 💱 Currency Converter (Web)
 ### Лабораторная работа №3: Spec-Driven Development и Google Antigravity
 
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Spec Kit](https://img.shields.io/badge/spec--driven-GitHub_Spec_Kit-black.svg?style=for-the-badge&logo=github)](https://github.com/github/spec-kit)
 [![Google Antigravity](https://img.shields.io/badge/built_with-Google_Antigravity_2.0-4285F4.svg?style=for-the-badge&logo=google)](https://antigravity.google)
-[![Tests Status](https://img.shields.io/badge/tests-26%20passed-success.svg?style=for-the-badge&logo=pytest)](file:///E:/currency_converter/tests)
+[![Tests Status](https://img.shields.io/badge/tests-39%20unit%20%2B%209%20e2e-success.svg?style=for-the-badge&logo=pytest)](file:///E:/currency_converter/tests)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-*Десктопное приложение для конвертации валют с графическим интерфейсом на базе официальных курсов Национального Банка Молдовы (НБМ / BNM), разработанное по методологии Spec-Driven Development.*
+*Веб-приложение для конвертации валют с графическим интерфейсом в браузере на базе официальных курсов Национального Банка Молдовы (НБМ / BNM), разработанное по методологии Spec-Driven Development.*
 
 </div>
 
@@ -44,6 +44,7 @@ currency_converter/
 ├── .specify/                  # Конфигурация Spec Kit и Конституция проекта
 │   └── memory/constitution.md # Принципы и ограничения разработки
 ├── specs/
+│   ├── 002-web-interface/     # Итерация 2: веб-интерфейс, SOLID, Playwright (spec/plan/tasks/verification)
 │   └── 001-currency-converter/
 │       ├── spec.md            # Функциональная спецификация и User Stories
 │       ├── plan.md            # Технический архитектурный план
@@ -59,60 +60,66 @@ currency_converter/
 │   ├── cache_manager.py       # Менеджер локального JSON-кэша
 │   ├── validator.py           # Валидатор сумм и разделителей
 │   ├── converter.py           # Математическое ядро конвертации и кросс-курсов
-│   └── gui.py                 # Desktop GUI (Tkinter / ttk, потокобезопасный)
+│   ├── ports.py               # Протоколы RateSource / RateCache (DIP, ISP)
+│   ├── rate_service.py        # RateService: загрузка → кэш → офлайн/праздничный откат → конвертация
+│   └── web.py                 # Flask: create_app(service) — только HTTP
+├── templates/index.html       # Веб-интерфейс (HTML + vanilla JS)
+├── e2e/                       # Playwright: converter.spec.js + e2e_server.py (фейковый источник)
 ├── tests/
 │   ├── __init__.py
 │   ├── test_parser.py         # Тесты разбора XML, номиналов и инъекции MDL
 │   ├── test_converter.py      # Тесты прямого, обратного и кросс-расчета
 │   ├── test_validator.py      # Тесты валидации (нули, отрицательные, строки)
 │   ├── test_cache.py          # Тесты сохранения и восстановления кэша
-│   └── test_network_fallback.py # Тесты сбоев сети и отката в выходные дни
+│   ├── test_network_fallback.py # Тесты сбоев сети и отката в выходные дни
+│   └── test_rate_service.py   # RateService на фейках, валидация даты, BNM 404, TLS
 ├── cache/
 │   └── exchange_rates.json    # Локальный кэш последних курсов
-├── main.py                    # Точка входа в приложение
+├── main.py                    # Composition root: собирает зависимости и запускает веб-сервер
 ├── REPORT.md                  # Итоговый аналитический отчёт по лабораторной
 └── README.md                  # Документация проекта
 ```
 
 ---
 
+## 🧱 SOLID
+
+| Принцип | Где |
+| :--- | :--- |
+| **SRP** | Парсинг/сеть (`bnm_client`), кэш (`cache_manager`), валидация (`validator`), математика (`converter`), сценарий (`rate_service`), HTTP (`web`) — по одному модулю |
+| **OCP** | Новый источник курсов добавляется новым классом с `fetch_rates()`, без правки `RateService` |
+| **LSP** | `BNMClient` и `FakeRateSource` (e2e) взаимозаменяемы |
+| **ISP** | `RateSource` — 1 метод, `RateCache` — 2 метода |
+| **DIP** | `RateService` зависит от протоколов из `ports.py`; конкретика собирается в `main.py` |
+
+---
+
 ## 🚀 Быстрый старт
 
-### Требования
-- Python 3.11 или новее.
-- Стандартная библиотека Python (`tkinter`, `urllib`, `xml.etree`, `unittest`). Дополнительные внешние pip-зависимости не требуются.
-
-### Запуск приложения
-Запустите графическое приложение одной командой:
 ```powershell
-python main.py
+pip install -r requirements.txt
+python main.py          # откроется http://127.0.0.1:5000
 ```
 
 ---
 
-## 🧪 Запуск Unit-тестов
+## 🧪 Тесты
 
-В соответствии с требованиями ТЗ (Часть 6), все тесты запускаются локально **одной командой**:
+**Unit-тесты** (разбор ответа источника, конвертация в обе стороны, пустой/некорректный ответ, валидация ввода, офлайн и кэш) — одной командой:
 
 ```powershell
-python -m unittest discover tests
+python -m pytest
 ```
 
-### Результат выполнения тестов:
-```text
-..........................
-----------------------------------------------------------------------
-Ran 26 tests in 0.147s
+**E2E-тесты Playwright** (US1–US4 из `specs/002-web-interface/spec.md` в браузере Chromium):
 
-OK
+```powershell
+npm install
+npx playwright install chromium
+npx playwright test
 ```
 
-Покрытие включает:
-1. Разбор XML-ответа источника (`test_parser.py`).
-2. Расчет конвертации, включая обратное направление и номиналы (`test_converter.py`).
-3. Поведение при пустом ответе и сбоях сети (`test_network_fallback.py`).
-4. Валидацию пользовательского ввода (`test_validator.py`).
-5. Надежность локального кэша (`test_cache.py`).
+Playwright сам поднимает `e2e/e2e_server.py`: настоящие `RateService`, кэш и веб-слой, но фейковый источник курсов с режимами `online` / `offline` / `holiday`.
 
 ---
 

@@ -1,6 +1,7 @@
 """Input validation service for currency conversion operations."""
 
 import math
+from datetime import date, datetime
 from typing import Tuple
 from src.exceptions import ValidationError
 
@@ -52,3 +53,14 @@ class InputValidator:
             return True, ""
         except ValidationError as e:
             return False, str(e)
+
+    @staticmethod
+    def validate_date(raw: str, today: date | None = None) -> date:
+        """ISO date YYYY-MM-DD that exists in the calendar and is not in the future."""
+        try:
+            parsed = datetime.strptime((raw or "").strip(), "%Y-%m-%d").date()
+        except ValueError as e:
+            raise ValidationError("Дата должна быть в формате ГГГГ-ММ-ДД и существовать в календаре.") from e
+        if parsed > (today or date.today()):
+            raise ValidationError("Курс на будущую дату ещё не опубликован. Выберите сегодняшнюю или прошедшую дату.")
+        return parsed

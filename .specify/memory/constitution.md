@@ -26,10 +26,21 @@ Financial calculations must strictly account for currency nominals (e.g., 100 JP
 ### V. Test-First & Automated Verification
 All core domain models, XML parsing logic, edge cases (empty responses, holidays, missing nodes), conversion calculations, and validators must be thoroughly covered by unit tests executable via a single standard CLI command.
 
+### VI. SOLID Architecture
+- **SRP**: parsing, fetching, caching, validation, conversion, orchestration and HTTP each live in their own class/module.
+- **OCP / DIP**: the application service depends on `RateSource` and `RateCache` protocols; concrete BNM/JSON implementations are wired only in the composition root (`main.py`).
+- **ISP**: protocols stay minimal (one or two methods).
+- **LSP**: any `RateSource` (real BNM client, test fake) is substitutable without changing callers.
+
+### VII. End-to-End Verification
+User-visible behaviour (button state, validation messages, offline banner, holiday notice, result display) is covered by Playwright browser tests executed with one command.
+
 ## Architecture & Technology Constraints
-- **Platform**: Desktop Application (GUI). Console-only applications are strictly prohibited by specification.
+- **Platform**: Web application with graphical interface (browser UI served locally). Console-only applications are strictly prohibited by specification.
 - **Language & Runtime**: Python 3.11+.
-- **GUI Toolkit**: `tkinter` / `ttk` (standard library, zero heavy external binary dependencies).
+- **Web Stack**: Flask (pure Python, no native extensions) + single-page HTML/vanilla JS. Native-extension dependencies are avoided because Windows Smart App Control blocks unsigned DLLs.
+- **Transport security**: TLS certificate verification MUST stay enabled for the BNM feed.
+- **E2E**: Playwright (`@playwright/test`, Chromium).
 - **Data Source**: Official National Bank of Moldova (BNM) XML feed (`https://www.bnm.md/ru/official_exchange_rates?get_xml=1&date=DD.MM.YYYY`).
 - **Cache Format**: Local JSON storage (`cache/exchange_rates.json`) with timestamp and source metadata.
 
@@ -37,4 +48,4 @@ All core domain models, XML parsing logic, edge cases (empty responses, holidays
 - This constitution governs all implementation artifacts and pull requests.
 - All development must proceed through dedicated Git branches with Pull Request merging into `main`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-23 | **Author**: esofl
+**Version**: 1.1.0 | **Ratified**: 2026-09-23 | **Amended**: 2026-11-16 (web UI, SOLID, Playwright) | **Author**: esofl

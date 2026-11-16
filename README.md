@@ -1,117 +1,100 @@
-<div align="center">
+# 💱 Конвертер валют — Лабораторная работа №3
 
-# 💱 Currency Converter (Web)
-### Лабораторная работа №3: Spec-Driven Development и Google Antigravity
-
-[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Spec Kit](https://img.shields.io/badge/spec--driven-GitHub_Spec_Kit-black.svg?style=for-the-badge&logo=github)](https://github.com/github/spec-kit)
-[![Google Antigravity](https://img.shields.io/badge/built_with-Google_Antigravity_2.0-4285F4.svg?style=for-the-badge&logo=google)](https://antigravity.google)
-[![Tests Status](https://img.shields.io/badge/tests-39%20unit%20%2B%209%20e2e-success.svg?style=for-the-badge&logo=pytest)](file:///E:/currency_converter/tests)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-
-*Веб-приложение для конвертации валют с графическим интерфейсом в браузере на базе официальных курсов Национального Банка Молдовы (НБМ / BNM), разработанное по методологии Spec-Driven Development.*
-
-</div>
+**Тема:** Spec-Driven Development (GitHub Spec Kit) + сборка агентом.
+**Приложение:** веб-конвертер валют по официальным курсам Национального банка Молдовы (BNM).
 
 ---
 
-## 📌 О проекте
+## Что это
 
-Приложение разработано в рамках Лабораторной работы №3 по методологии **Spec-Driven Development (SDD)**:
-1. **Спецификация**: Формирование конституции, спецификации, архитектурного плана и задач с помощью **GitHub Spec Kit**.
-2. **Сборка агентом**: Реализация кода автономным агентом в **Google Antigravity 2.0** на базе подготовленных спецификаций.
-3. **Строгая культура Git**: Отдельная ветка на каждый этап (`feat/specifications`, `feat/currency-converter-app`, `test/unit-tests-and-report`) со слиянием в `main` исключительно через **Pull Request**.
+Лабораторная проверяет полный цикл **spec-driven development**: сначала приложение описывается markdown-спецификациями (конституция → спецификация → план → задачи → проверка согласованности), и только потом агент пишет по ним код. Поэтому в истории git спецификации идут раньше реализации.
 
----
+Само приложение — страница в браузере, где можно:
 
-## ✨ Ключевые возможности
+- ввести сумму, выбрать исходную и целевую валюту и дату курса;
+- получить результат, кросс-курс, **дату курса и источник данных**;
+- поменять валюты местами кнопкой ⇄ (обратная конвертация).
 
-- 🏛️ **Официальные курсы BNM**: Прямая интеграция с XML-шлюзом [Национального Банка Молдовы](https://www.bnm.md/ru/official_exchange_rates) (`ValCurs`).
-- ⚡ **Двунаправленная и кросс-конвертация**: Поддержка конвертации между любыми мировыми валютами (EUR, USD, GBP, RON, UAH, RUB, JPY и др.) и молдавским леем (MDL).
-- 🔄 **Корректный учет номиналов**: Автоматическая обработка тега `<Nominal>` для валют, котируемых сотнями/десятками (например, 100 JPY, 100 HUF).
-- 🛡️ **Отказоустойчивость и оффлайн-режим**: При сбое сети или отсутствии соединения приложение переходит на локально кэшированные курсы (`cache/exchange_rates.json`) с индикацией даты.
-- 📅 **Обработка выходных и праздников**: Автоматический откат на предыдущие рабочие банковские дни при получении пустой котировки.
-- 🛑 **Реактивная валидация ввода**: Кнопка конвертации заблокирована до ввода корректного положительного числа; поддержка запятой и точки как десятичных разделителей.
-- 🎯 **Тождественная конвертация**: Мгновенный расчет $X \to X$ без лишних сетевых вызовов.
+Приложение обязано вести себя корректно в неудобных ситуациях:
 
----
-
-## 📐 Архитектура проекта
-
-```
-currency_converter/
-├── .github/                   # Spec Kit интеграции и навыки агента
-├── .specify/                  # Конфигурация Spec Kit и Конституция проекта
-│   └── memory/constitution.md # Принципы и ограничения разработки
-├── specs/
-│   ├── 002-web-interface/     # Итерация 2: веб-интерфейс, SOLID, Playwright (spec/plan/tasks/verification)
-│   └── 001-currency-converter/
-│       ├── spec.md            # Функциональная спецификация и User Stories
-│       ├── plan.md            # Технический архитектурный план
-│       ├── data-model.md      # Модели данных и ER-схема
-│       ├── tasks.md           # Декомпозиция задач реализации
-│       ├── research.md        # Исследование BNM XML и UI-стека
-│       └── verification.md    # Матрица согласованности требований
-├── src/
-│   ├── __init__.py
-│   ├── models.py              # Valute, ExchangeRateSet dataclasses
-│   ├── exceptions.py          # Доменные исключения (NetworkError, ValidationError и т.д.)
-│   ├── bnm_client.py          # Клиент BNM XML с обработкой выходных дней
-│   ├── cache_manager.py       # Менеджер локального JSON-кэша
-│   ├── validator.py           # Валидатор сумм и разделителей
-│   ├── converter.py           # Математическое ядро конвертации и кросс-курсов
-│   ├── ports.py               # Протоколы RateSource / RateCache (DIP, ISP)
-│   ├── rate_service.py        # RateService: загрузка → кэш → офлайн/праздничный откат → конвертация
-│   └── web.py                 # Flask: create_app(service) — только HTTP
-├── templates/index.html       # Веб-интерфейс (HTML + vanilla JS)
-├── e2e/                       # Playwright: converter.spec.js + e2e_server.py (фейковый источник)
-├── tests/
-│   ├── __init__.py
-│   ├── test_parser.py         # Тесты разбора XML, номиналов и инъекции MDL
-│   ├── test_converter.py      # Тесты прямого, обратного и кросс-расчета
-│   ├── test_validator.py      # Тесты валидации (нули, отрицательные, строки)
-│   ├── test_cache.py          # Тесты сохранения и восстановления кэша
-│   ├── test_network_fallback.py # Тесты сбоев сети и отката в выходные дни
-│   └── test_rate_service.py   # RateService на фейках, валидация даты, BNM 404, TLS
-├── cache/
-│   └── exchange_rates.json    # Локальный кэш последних курсов
-├── main.py                    # Composition root: собирает зависимости и запускает веб-сервер
-├── REPORT.md                  # Итоговый аналитический отчёт по лабораторной
-└── README.md                  # Документация проекта
-```
-
----
-
-## 🧱 SOLID
-
-| Принцип | Где |
+| Ситуация | Поведение |
 | :--- | :--- |
-| **SRP** | Парсинг/сеть (`bnm_client`), кэш (`cache_manager`), валидация (`validator`), математика (`converter`), сценарий (`rate_service`), HTTP (`web`) — по одному модулю |
-| **OCP** | Новый источник курсов добавляется новым классом с `fetch_rates()`, без правки `RateService` |
-| **LSP** | `BNMClient` и `FakeRateSource` (e2e) взаимозаменяемы |
-| **ISP** | `RateSource` — 1 метод, `RateCache` — 2 метода |
-| **DIP** | `RateService` зависит от протоколов из `ports.py`; конкретика собирается в `main.py` |
+| Нет сети | не падает; если есть сохранённый курс — работает с ним и пишет «Нет связи с BNM. Используется сохранённый курс от ДД.ММ.ГГГГ» |
+| Нет сети и нет кэша | понятная ошибка, кнопка неактивна |
+| Выходной / праздник (BNM не публикует курс) | откат на день назад (до 7 дней) и сообщение «Курс на … не опубликован, показан последний доступный курс от …» |
+| Пустое поле, буквы, `0`, отрицательная сумма | кнопка неактивна, под полем объяснение; сервер тоже проверяет |
+| Будущая дата | ошибка, запрос к BNM не отправляется |
+| Одинаковые валюты | `50 EUR = 50 EUR`, без ошибки |
+| Перезапуск | последний успешный курс хранится в `cache/exchange_rates.json` и переживает перезапуск |
 
 ---
 
-## 🚀 Быстрый старт
+## Требования
+
+| Что | Версия | Проверка |
+| :--- | :--- | :--- |
+| Python | 3.10+ | `python --version` |
+| pip-зависимости | `flask`, `pytest` | из `requirements.txt` |
+| Node.js (только для e2e) | 18+ | `node --version` |
+| Интернет | для живых курсов BNM | без него работает кэш |
+
+---
+
+## Установка и запуск
 
 ```powershell
-pip install -r requirements.txt
-python main.py          # откроется http://127.0.0.1:5000
+git clone https://github.com/esofl/currency_converter.git
+cd currency_converter
+python -m pip install -r requirements.txt
+python main.py
 ```
+
+Браузер откроется на **http://127.0.0.1:5000**. Остановка — `Ctrl+C`.
+
+### Как пользоваться
+
+1. Введите сумму (`100`, `150,50` или `150.50`).
+2. Выберите валюты «Из» и «В» (MDL — молдавский лей, базовая валюта BNM).
+3. При необходимости поменяйте дату курса (по умолчанию сегодня).
+4. Нажмите **«Конвертировать»** (или Enter) — появится результат, под ним дата курса, источник и кросс-курс.
+5. **⇄** меняет валюты местами.
 
 ---
 
-## 🧪 Тесты
+## Сценарий демонстрации на защите
 
-**Unit-тесты** (разбор ответа источника, конвертация в обе стороны, пустой/некорректный ответ, валидация ввода, офлайн и кэш) — одной командой:
+1. `python main.py` → `100 EUR → USD` → результат, дата курса, «Национальный Банк Молдовы (BNM)».
+2. **⇄** и конвертировать полученную сумму обратно → исходные 100 EUR.
+3. Ввести `abc`, `-5`, `0`, очистить поле → кнопка серая, под полем причина.
+4. `50 EUR → EUR` → `50 EUR = 50 EUR`.
+5. Выбрать дату в субботу или воскресенье → курс берётся с ближайшего опубликованного дня; если BNM не опубликовал курс, на странице сообщение об откате.
+6. **Отключить интернет** (Wi-Fi / кабель) → обновить страницу → жёлтая плашка «Нет связи с BNM… сохранённый курс от …», конвертация работает.
+7. Закрыть приложение (`Ctrl+C`), запустить снова без сети → кэш на месте.
+8. Показать историю веток: `git log --oneline --graph` — `specs/...` слиты раньше `feat/...`, всё через Pull Request.
+9. Запустить тесты.
+
+---
+
+## Тесты
+
+### Unit-тесты — одной командой
 
 ```powershell
 python -m pytest
 ```
 
-**E2E-тесты Playwright** (US1–US4 из `specs/002-web-interface/spec.md` в браузере Chromium):
+39 тестов:
+
+| Файл | Что проверяет |
+| :--- | :--- |
+| `tests/test_parser.py` | разбор XML BNM, номиналы, добавление MDL |
+| `tests/test_converter.py` | конвертация в обе стороны, кросс-курсы, одинаковые валюты |
+| `tests/test_validator.py` | пустой ввод, буквы, ноль, минус, запятая |
+| `tests/test_cache.py` | сохранение и загрузка кэша |
+| `tests/test_network_fallback.py` | ошибки сети, HTTP 500, откат в выходные |
+| `tests/test_rate_service.py` | офлайн с кэшем и без, некорректный ответ, кэш после «перезапуска», валидация даты, HTTP 404 от BNM, включённая проверка TLS |
+
+### E2E-тесты — Playwright в браузере Chromium
 
 ```powershell
 npm install
@@ -119,14 +102,79 @@ npx playwright install chromium
 npx playwright test
 ```
 
-Playwright сам поднимает `e2e/e2e_server.py`: настоящие `RateService`, кэш и веб-слой, но фейковый источник курсов с режимами `online` / `offline` / `holiday`.
+9 сценариев из `specs/002-web-interface/spec.md` (US1–US4). Playwright сам запускает `e2e/e2e_server.py`: настоящие сервис, кэш и веб-слой, но **фейковый источник курсов** с режимами `online` / `offline` / `holiday` — тесты не зависят от сайта BNM и интернета.
 
 ---
 
-## 📄 Отчёт о работе
-Подробный отчёт, содержащий ответы на все 5 обязательных пунктов ТЗ (выбор источника, модели Antigravity, анализ ошибок агента и ручных исправлений), доступен в файле [REPORT.md](./REPORT.md).
+## Spec Kit: где что лежит
+
+| Артефакт | Файл |
+| :--- | :--- |
+| Конституция (принципы, ограничения, SOLID, Playwright) | `.specify/memory/constitution.md` |
+| Итерация 1 — десктоп-конвертер | `specs/001-currency-converter/` (`spec.md`, `plan.md`, `tasks.md`, `data-model.md`, `research.md`, `verification.md`) |
+| Итерация 2 — веб-интерфейс и SOLID | `specs/002-web-interface/` (`spec.md`, `plan.md`, `tasks.md`, `verification.md`) |
+| Отчёт | [`REPORT.md`](REPORT.md) — источник данных, модели, что агент сделал верно, где ошибся, соответствие спецификации |
 
 ---
 
-## 📜 Лицензия
-Проект распространяется под лицензией MIT.
+## Архитектура и SOLID
+
+```text
+Браузер (templates/index.html)
+   │ fetch: GET /api/rates?date=…, POST /api/convert
+   ▼
+src/web.py          create_app(service)   — только HTTP
+   ▼
+src/rate_service.py RateService           — загрузка → кэш → офлайн/праздник → конвертация
+   │ зависит от протоколов src/ports.py
+   ├── RateSource ← BNMClient     (src/bnm_client.py: XML BNM, откат по дням, TLS)
+   └── RateCache  ← CacheManager  (src/cache_manager.py: cache/exchange_rates.json)
+   + ConverterService (src/converter.py) и InputValidator (src/validator.py)
+main.py — composition root
+```
+
+| Принцип | Где |
+| :--- | :--- |
+| **SRP** | Парсинг/сеть (`bnm_client`), кэш (`cache_manager`), валидация (`validator`), математика (`converter`), сценарий (`rate_service`), HTTP (`web`) — по одному модулю |
+| **OCP** | Новый источник курсов — новый класс с `fetch_rates()`, `RateService` не меняется |
+| **LSP** | `BNMClient` и `FakeRateSource` (e2e) взаимозаменяемы |
+| **ISP** | `RateSource` — 1 метод, `RateCache` — 2 метода |
+| **DIP** | `RateService` зависит от протоколов из `ports.py`; конкретика собирается в `main.py` |
+
+### Формулы (учёт номинала, MDL — база)
+
+```text
+Сумма_MDL = Сумма_из × (Курс_из / Номинал_из)
+Сумма_в   = Сумма_MDL / (Курс_в / Номинал_в)
+```
+
+Пример: BNM котирует иену за 100 единиц (`<Nominal>100</Nominal>`), поэтому 1000 JPY = 1000 × (курс / 100) MDL.
+
+---
+
+## Структура
+
+```text
+currency_converter/
+├── .specify/                  # Spec Kit: конституция, шаблоны, скрипты
+├── specs/001-…/, specs/002-…/ # спецификации итераций
+├── src/                       # код приложения (см. архитектуру)
+├── templates/index.html       # веб-интерфейс
+├── tests/                     # unit-тесты (pytest)
+├── e2e/                       # Playwright: converter.spec.js, e2e_server.py
+├── main.py                    # точка входа
+├── requirements.txt, package.json, playwright.config.js
+├── REPORT.md                  # отчёт
+└── README.md
+```
+
+---
+
+## Частые проблемы
+
+| Симптом | Решение |
+| :--- | :--- |
+| `ModuleNotFoundError: flask` | `python -m pip install -r requirements.txt` |
+| Порт 5000 занят | закройте другой процесс или поменяйте `PORT` в `main.py` |
+| «Нет связи с BNM… сохранённого курса нет» | первый запуск без интернета — подключитесь хотя бы раз, курс сохранится |
+| `npx playwright test` — нет браузера | `npx playwright install chromium` |
